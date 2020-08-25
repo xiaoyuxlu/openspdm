@@ -53,7 +53,7 @@ Pkcs7Sign (
   OUT  UINTN        *SignedDataSize
   )
 {
-    return TRUE;
+    return FALSE;
 }
 
 /**
@@ -89,5 +89,5 @@ Pkcs7Verify (
   IN  UINTN        DataLength
   )
 {
-    return TRUE;
+    return FALSE;
 }
