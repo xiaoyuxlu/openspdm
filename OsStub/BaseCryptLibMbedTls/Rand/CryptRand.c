@@ -6,9 +6,51 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
+#include "Hal/Base.h"
 #include "InternalCryptLib.h"
-
+#include "mbedtls/ctr_drbg.h"
 int rand ();
+
+static mbedtls_ctr_drbg_context mDrbgContext;
+static BOOLEAN                  mInitFlag = FALSE;
+
+
+
+/**
+  MbedTls entropy callback function implement for OsTest
+
+  This function generate entropy for the mbedtls pseudorandom number generator.
+
+
+  @param[in]  EntropyContext      Pointer to entropy generate
+                                  If NULL, default entropy seed is used.
+  @param[in]  Buf                 entropy buf.
+  @param[in]  BufSize             Size of entropy buf.
+
+  @retval TRUE   Pseudorandom number generator has enough entropy for random generation.
+  @retval FALSE  Pseudorandom number generator does not have enough entropy for random generation.
+
+**/
+int OsTestEntropyFnc(
+   void * EntropyContext,
+   unsigned char * Buf,
+   size_t BufSize)
+{
+  UINTN Count = BufSize/4;
+  UINTN Final = BufSize%4;
+  UINTN Index = 0;
+  UINT32 Data32;
+
+  for (Index = 0; Index < Count; Index++) {
+    *(UINT32 *)(Buf + Index * 4) = rand();
+  }
+  if (Final != 0) {
+    Data32 = rand();
+    CopyMem (Buf + Count * 4, &Data32, Final);
+  }
+
+  return 0;
+}
 
 /**
   Sets up the seed value for the pseudorandom number generator.
@@ -33,8 +75,21 @@ RandomSeed (
   IN  UINTN         SeedSize
   )
 {
-  // TBD
-  return TRUE;
+  int ret = -1;
+  if (mInitFlag == FALSE) {
+    mbedtls_ctr_drbg_init(&mDrbgContext);
+    if (Seed == NULL) {
+      ret = mbedtls_ctr_drbg_seed(&mDrbgContext, OsTestEntropyFnc, NULL, NULL, 0);
+    } else {
+      // TBD
+    }
+  }
+
+  if (ret == 0) {
+      mInitFlag = TRUE;
+  }
+
+  return ret == 0;
 }
 
 /**
@@ -56,19 +111,9 @@ RandomBytes (
   IN   UINTN  Size
   )
 {
-  UINTN Count = Size/4;
-  UINTN Final = Size%4;
-  UINTN Index = 0;
-  UINT32 Data32;
-
-  for (Index = 0; Index < Count; Index++) {
-    *(UINT32 *)(Output + Index * 4) = rand();
-  }
-  if (Final != 0) {
-    Data32 = rand();
-    CopyMem (Output + Count * 4, &Data32, Final);
-  }
-  return TRUE;
+  int ret = -1;
+  ret = mbedtls_ctr_drbg_random(&mDrbgContext, Output, Size);
+  return ret == 0;
 }
 
 int myrand( void *rng_state, unsigned char *output, size_t len )
