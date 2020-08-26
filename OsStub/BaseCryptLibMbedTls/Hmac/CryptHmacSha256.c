@@ -221,7 +221,7 @@ HmacSha256Final (
   the digest value into the specified memory.
 
   If this interface is not supported, then return FALSE.
-  
+
   @param[in]   Data        Pointer to the buffer containing the data to be digested.
   @param[in]   DataSize    Size of Data buffer in bytes.
   @param[in]   Key         Pointer to the user-supplied key.
