@@ -1,6 +1,6 @@
 /** @file
   GMAC-AES Wrapper Implementation over OpenSSL.
-  
+
   NIST SP800-38d - Cipher Modes of Operation: Galois / Counter Mode(GCM) and GMAC
 
   An implementation may restrict the input to the non-confidential data, i.e., without any
@@ -84,7 +84,7 @@ GmacAesInit (
   if (GmacAesContext == NULL || KeySize > INT_MAX) {
     return FALSE;
   }
-  
+
   switch (KeySize) {
   case 16:
   case 24:
@@ -104,7 +104,7 @@ GmacAesInit (
 
 /**
   Set IV for GmacAesContext as GMAC-AES context for subsequent use.
-  
+
   IvSize must be 12, otherwise FALSE is returned.
 
   If GmacAesContext is NULL, then return FALSE.
@@ -125,9 +125,14 @@ GmacAesSetIv (
   IN   UINTN        IvSize
   )
 {
-  ASSERT(FALSE);
+  INT32  Ret;
 
-  return FALSE;
+  Ret = mbedtls_gcm_starts(GmacAesContext, MBEDTLS_GCM_ENCRYPT, Iv, (UINT32)IvSize, NULL, 0);
+  if (Ret != 0) {
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
 /**
@@ -167,7 +172,9 @@ GmacAesDuplicate (
 
   @param[in, out]  GmacAesContext    Pointer to the GMAC-AES context.
   @param[in]       Data              Pointer to the buffer containing the data to be digested.
-  @param[in]       DataSize          Size of Data buffer in bytes.
+  @param[in]       DataSize          Size of Data buffer in bytes. DataSize <= 128 is required
+
+  Note:  DataSize should be a multiple of 16 except in the last call before GmacAesFinal
 
   @retval TRUE   GMAC-AES data digest succeeded.
   @retval FALSE  GMAC-AES data digest failed.
@@ -177,13 +184,23 @@ BOOLEAN
 EFIAPI
 GmacAesUpdate (
   IN OUT  VOID        *GmacAesContext,
-  IN      CONST VOID  *Data,
+  IN      VOID        *Data,
   IN      UINTN       DataSize
   )
 {
-  ASSERT(FALSE);
+  UINT8 Buf[128];
+  UINT32 Ret;
 
-  return FALSE;
+  if (DataSize > 128 || Data == NULL || GmacAesContext == NULL) {
+    return FALSE;
+  }
+
+  Ret = mbedtls_gcm_update(GmacAesContext,
+                DataSize,
+                Data,
+                Buf);
+
+  return Ret == 0;
 }
 
 /**
@@ -237,7 +254,7 @@ GmacAesFinal (
   the digest value into the specified memory.
 
   If this interface is not supported, then return FALSE.
-  
+
   @param[in]   Data        Pointer to the buffer containing the data to be digested.
   @param[in]   DataSize    Size of Data buffer in bytes.
   @param[in]   Key         Pointer to the user-supplied key.
