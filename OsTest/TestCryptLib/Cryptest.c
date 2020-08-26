@@ -43,10 +43,10 @@ CryptestMain (
     return Status;
   }
 
-  // Status = ValidateCryptHmac ();
-  // if (EFI_ERROR (Status)) {
-  //   return Status;
-  // }
+  Status = ValidateCryptHmac ();
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
 
   // Status = ValidateCryptBlockCipher ();
   // if (EFI_ERROR (Status)) {
