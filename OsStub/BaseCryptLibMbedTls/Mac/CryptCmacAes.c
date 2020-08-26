@@ -56,7 +56,7 @@ CmacAesFree (
 /**
   Initializes user-supplied memory pointed by CmacAesContext as CMAC-AES context for
   subsequent use.
-  
+
   KeySize must be 16, 24 or 32, otherwise FALSE is returned.
   If CmacAesContext is NULL, then return FALSE.
 
@@ -82,26 +82,26 @@ CmacAesInit (
   if (CmacAesContext == NULL || KeySize > INT_MAX) {
     return FALSE;
   }
-  
+
   switch (KeySize) {
   case 16:
-    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_CBC);
+    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
     break;
   case 24:
-    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_192_CBC);
+    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_192_ECB);
     break;
   case 32:
-    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_256_CBC);
+    cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_256_ECB);
     break;
   default:
     return FALSE;
   }
-  
+
   Ret = mbedtls_cipher_setup(CmacAesContext, cipher_info);
   if (Ret != 0) {
     return FALSE;
   }
-  Ret = mbedtls_cipher_cmac_starts(CmacAesContext, Key, (UINT32)KeySize);
+  Ret = mbedtls_cipher_cmac_starts(CmacAesContext, Key, KeySize * 8);
   if (Ret != 0) {
     return FALSE;
   }
@@ -228,7 +228,7 @@ CmacAesFinal (
   KeySize must be 16, 24 or 32, otherwise FALSE is returned.
 
   If this interface is not supported, then return FALSE.
-  
+
   @param[in]   Data        Pointer to the buffer containing the data to be digested.
   @param[in]   DataSize    Size of Data buffer in bytes.
   @param[in]   Key         Pointer to the user-supplied key.
@@ -253,16 +253,16 @@ CmacAesAll (
 {
   const mbedtls_cipher_info_t  *cipher_info;
   INT32                        Ret;
-  
+
   switch (KeySize) {
   case 16:
-    cipher_info = mbedtls_cipher_info_from_type (MBEDTLS_CIPHER_AES_128_CBC);
+    cipher_info = mbedtls_cipher_info_from_type (MBEDTLS_CIPHER_AES_128_ECB);
     break;
   case 24:
-    cipher_info = mbedtls_cipher_info_from_type (MBEDTLS_CIPHER_AES_192_CBC);
+    cipher_info = mbedtls_cipher_info_from_type (MBEDTLS_CIPHER_AES_192_ECB);
     break;
   case 32:
-    cipher_info = mbedtls_cipher_info_from_type (MBEDTLS_CIPHER_AES_256_CBC);
+    cipher_info = mbedtls_cipher_info_from_type (MBEDTLS_CIPHER_AES_256_ECB);
     break;
   default:
     return FALSE;
