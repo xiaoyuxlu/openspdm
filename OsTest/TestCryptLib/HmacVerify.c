@@ -65,6 +65,12 @@ ValidateCryptHmac (
   ZeroMem (Digest, MAX_DIGEST_SIZE);
   HmacCtx = HmacSha256New ();
 
+  Status = HmacSha256SetKey (HmacCtx, HmacSha256Key, 20);
+  if (!Status) {
+    Print (L"[Fail]");
+    return EFI_ABORTED;
+  }
+
   Print (L"Update... ");
   Status  = HmacSha256Update (HmacCtx, HmacData, 8);
   if (!Status) {
