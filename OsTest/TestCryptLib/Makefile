@@ -35,7 +35,6 @@ SOURCE_DIR = $(WORKSPACE)\OsTest\$(MODULE_NAME)
 OBJECT_FILES =  \
     $(OUTPUT_DIR)\Cryptest.obj \
     $(OUTPUT_DIR)\HashVerify.obj \
-    $(OUTPUT_DIR)\HashVerify.obj \
     $(OUTPUT_DIR)\HmacVerify.obj \
     $(OUTPUT_DIR)\MacVerify.obj \
     $(OUTPUT_DIR)\AeadVerify.obj \
