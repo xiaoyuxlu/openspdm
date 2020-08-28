@@ -53,7 +53,54 @@ RsaGetKey (
   IN OUT  UINTN        *BnSize
   )
 {
-  return FALSE;
+  mbedtls_rsa_context *RsaKey;
+  INT32               Ret;
+  mbedtls_mpi         Value;
+  UINTN               Size;
+
+  //
+  // Check input parameters.
+  //
+  if (RsaContext == NULL || *BnSize > INT_MAX) {
+    return FALSE;
+  }
+  //
+  // Init mbedtls_mpi
+  //
+  mbedtls_mpi_init(&Value);
+
+  RsaKey = (mbedtls_rsa_context *)RsaContext;
+
+  switch (KeyTag) {
+  case RsaKeyN:
+    Ret = mbedtls_rsa_export(RsaKey, &Value, NULL, NULL, NULL, NULL);
+    break;
+  case RsaKeyE:
+    Ret = mbedtls_rsa_export(RsaKey, NULL, NULL, NULL, NULL, &Value);
+    break;
+  case RsaKeyD:
+    Ret = mbedtls_rsa_export(RsaKey, NULL, NULL, NULL, &Value, NULL);
+    break;
+  case RsaKeyQ:
+    Ret = mbedtls_rsa_export(RsaKey, NULL, NULL, &Value, NULL, NULL);
+    break;
+  case RsaKeyP:
+    Ret = mbedtls_rsa_export(RsaKey, NULL, &Value, NULL, NULL, NULL);
+    break;
+  case RsaKeyDp:
+    break;
+  }
+
+  if (Ret == 0) {
+     Size = mbedtls_mpi_size(&Value);
+  }
+  if (BigNumber != NULL && Ret == 0) {
+    Ret = mbedtls_mpi_write_binary(&Value, BigNumber, Size);
+  }
+  *BnSize = Size;
+
+  mbedtls_mpi_free(&Value);
+  return Ret == 0;
 }
 
 /**
@@ -159,7 +206,7 @@ RsaPkcs1Sign (
   case SHA256_DIGEST_SIZE:
     md_alg = MBEDTLS_MD_SHA256;
     break;
-    
+
   case SHA384_DIGEST_SIZE:
     md_alg = MBEDTLS_MD_SHA384;
     break;

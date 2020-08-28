@@ -38,6 +38,7 @@ RsaNew (
     return RsaContext;
   }
 
+  mbedtls_rsa_init(RsaContext, MBEDTLS_RSA_PKCS_V15, MBEDTLS_MD_NONE);
   return RsaContext;
 }
 
@@ -88,7 +89,77 @@ RsaSetKey (
   IN      UINTN        BnSize
   )
 {
-  return FALSE;
+  mbedtls_rsa_context *RsaKey;
+  INT32               Ret;
+
+  //
+  // Check input parameters.
+  //
+  if (RsaContext == NULL || BnSize > INT_MAX) {
+    return FALSE;
+  }
+
+  RsaKey = (mbedtls_rsa_context *)RsaContext;
+
+  switch (KeyTag) {
+  case RsaKeyN:
+    Ret = mbedtls_rsa_import_raw(
+      RsaKey,
+      BigNumber, BnSize,
+      NULL, 0,
+      NULL, 0,
+      NULL, 0,
+      NULL, 0);
+    break;
+  case RsaKeyE:
+    Ret = mbedtls_rsa_import_raw(
+      RsaKey,
+      NULL, 0,
+      NULL, 0,
+      NULL, 0,
+      NULL, 0,
+      BigNumber, BnSize
+    );
+    break;
+  case RsaKeyD:
+    Ret = mbedtls_rsa_import_raw(
+      RsaKey,
+      NULL, 0,
+      NULL, 0,
+      NULL, 0,
+      BigNumber, BnSize,
+      NULL, 0
+    );
+    break;
+  case RsaKeyQ:
+    Ret = mbedtls_rsa_import_raw(
+      RsaKey,
+      NULL, 0,
+      NULL, 0,
+      BigNumber, BnSize,
+      NULL, 0,
+      NULL, 0
+    );
+    break;
+  case RsaKeyP:
+  Ret = mbedtls_rsa_import_raw(
+      RsaKey,
+      NULL, 0,
+      BigNumber, BnSize,
+      NULL, 0,
+      NULL, 0,
+      NULL, 0
+    );
+    break;
+  case RsaKeyDp:
+    break;
+  case RsaKeyDq:
+    break;
+  case RsaKeyQInv:
+    break;
+  }
+  mbedtls_rsa_complete(RsaKey);
+  return Ret == 0;
 }
 
 /**
@@ -135,7 +206,7 @@ RsaPkcs1Verify (
   case SHA256_DIGEST_SIZE:
     md_alg = MBEDTLS_MD_SHA256;
     break;
-    
+
   case SHA384_DIGEST_SIZE:
     md_alg = MBEDTLS_MD_SHA384;
     break;
