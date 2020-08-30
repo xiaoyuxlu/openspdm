@@ -15,8 +15,13 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "InternalCryptLib.h"
-
 #include <mbedtls/rsa.h>
+#include "mbedtls/ctr_drbg.h"
+
+/**
+  Declear mbedtls_ctr_drbg_context gDrbgContext which init by RandomSeed()
+**/
+extern mbedtls_ctr_drbg_context gDrbgContext;
 
 /**
   Gets the tag-designated RSA key component from the established RSA context.
@@ -133,7 +138,42 @@ RsaGenerateKey (
   IN      UINTN        PublicExponentSize
   )
 {
-  return FALSE;
+
+  INT32 Ret = 0;
+  mbedtls_rsa_context *Rsa;
+  INT32 PE;
+  mbedtls_mpi E;
+
+  //
+  // Check input parameters.
+  //
+  if (RsaContext == NULL || ModulusLength > INT_MAX || PublicExponentSize > INT_MAX) {
+    return FALSE;
+  }
+
+  Rsa = (mbedtls_rsa_context*)RsaContext;
+
+  mbedtls_mpi_init(&E);
+
+  if(PublicExponent == NULL) {
+    PE = 0x10001;
+  } else {
+    // TBD
+    Ret = mbedtls_mpi_read_binary(&E, PublicExponent, PublicExponentSize);
+    PE = 0x10001;
+  }
+
+  if(Ret == 0) {
+    Ret = mbedtls_rsa_gen_key(
+      Rsa,
+      mbedtls_ctr_drbg_random,
+      &gDrbgContext,
+      (UINT32)ModulusLength,
+      PE
+    );
+  }
+
+  return Ret == 0;
 }
 
 /**
@@ -161,7 +201,15 @@ RsaCheckKey (
   IN  VOID  *RsaContext
   )
 {
-  return FALSE;
+
+  if (RsaContext == NULL) {
+    return FALSE;
+  }
+
+  UINT32 Ret;
+
+  Ret = mbedtls_rsa_complete(RsaContext);
+  return Ret == 0;
 }
 
 /**

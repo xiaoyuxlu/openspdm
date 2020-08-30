@@ -91,6 +91,7 @@ RsaSetKey (
 {
   mbedtls_rsa_context *RsaKey;
   INT32               Ret;
+  mbedtls_mpi         Value;
 
   //
   // Check input parameters.
@@ -99,56 +100,64 @@ RsaSetKey (
     return FALSE;
   }
 
+  mbedtls_mpi_init(&Value);
+
   RsaKey = (mbedtls_rsa_context *)RsaContext;
+
+  // if BigNumber is Null clear
+  if (BigNumber) {
+    Ret = mbedtls_mpi_read_binary(&Value, BigNumber, BnSize);
+  }
 
   switch (KeyTag) {
   case RsaKeyN:
-    Ret = mbedtls_rsa_import_raw(
+    Ret = mbedtls_rsa_import(
       RsaKey,
-      BigNumber, BnSize,
-      NULL, 0,
-      NULL, 0,
-      NULL, 0,
-      NULL, 0);
+      &Value,
+      NULL,
+      NULL,
+      NULL,
+      NULL
+    );
     break;
   case RsaKeyE:
-    Ret = mbedtls_rsa_import_raw(
+    Ret = mbedtls_rsa_import(
       RsaKey,
-      NULL, 0,
-      NULL, 0,
-      NULL, 0,
-      NULL, 0,
-      BigNumber, BnSize
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      &Value
     );
     break;
   case RsaKeyD:
-    Ret = mbedtls_rsa_import_raw(
+    Ret = mbedtls_rsa_import(
       RsaKey,
-      NULL, 0,
-      NULL, 0,
-      NULL, 0,
-      BigNumber, BnSize,
-      NULL, 0
+      NULL,
+      NULL,
+      NULL,
+      &Value,
+      NULL
     );
     break;
   case RsaKeyQ:
-    Ret = mbedtls_rsa_import_raw(
+    Ret = mbedtls_rsa_import(
       RsaKey,
-      NULL, 0,
-      NULL, 0,
-      BigNumber, BnSize,
-      NULL, 0,
-      NULL, 0
+      NULL,
+      NULL,
+      &Value,
+      NULL,
+      NULL
     );
     break;
   case RsaKeyP:
-  Ret = mbedtls_rsa_import_raw(
+  Ret = mbedtls_rsa_import(
       RsaKey,
-      NULL, 0,
-      BigNumber, BnSize,
-      NULL, 0,
-      NULL, 0,
-      NULL, 0
+      NULL,
+      &Value,
+      NULL,
+      NULL,
+      NULL
     );
     break;
   case RsaKeyDp:

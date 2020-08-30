@@ -142,15 +142,16 @@ RsaGetKey (
   *BnSize = Size;
   Size    = BN_num_bytes (BnKey);
 
+  if (BigNumber == NULL) {
+    *BnSize = Size;
+    return TRUE;
+  }
+
   if (*BnSize < Size) {
     *BnSize = Size;
     return FALSE;
   }
 
-  if (BigNumber == NULL) {
-    *BnSize = Size;
-    return TRUE;
-  }
   *BnSize = BN_bn2bin (BnKey, BigNumber) ;
 
   return TRUE;
@@ -399,7 +400,7 @@ RsaPssSign (
   INT32         Size;
   CONST EVP_MD  *HashAlg;
   VOID          *Buffer;
-  
+
   if (RsaContext == NULL || MessageHash == NULL) {
     return FALSE;
   }
