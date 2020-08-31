@@ -477,18 +477,6 @@ ValidateCryptRsa2 (
   // }
 
   //
-  // X509 Certificate Verification.
-  //
-  Print (L"\n- X509 Certificate Verification with Trusted CA ...");
-  Status = X509VerifyCert (TestCert, sizeof (TestCert), TestCACert, sizeof (TestCACert));
-  if (!Status) {
-    Print (L"[Fail]\n");
-    return EFI_ABORTED;
-  } else {
-    Print (L"[Pass]\n");
-  }
-
-  //
   // Release Resources.
   //
   RsaFree  (RsaPubKey);
