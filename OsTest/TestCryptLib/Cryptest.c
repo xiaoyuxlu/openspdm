@@ -68,10 +68,10 @@ CryptestMain (
     return Status;
   }
 
-  // Status = ValidateCryptRsa2 ();
-  // if (EFI_ERROR (Status)) {
-  //   return Status;
-  // }
+  Status = ValidateCryptRsa2 ();
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
 
   // Status = ValidateCryptPkcs5Pbkdf2 ();
   // if (EFI_ERROR (Status)) {
