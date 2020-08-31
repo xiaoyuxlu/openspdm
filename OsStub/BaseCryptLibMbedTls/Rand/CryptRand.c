@@ -11,8 +11,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "mbedtls/ctr_drbg.h"
 int rand ();
 
-static mbedtls_ctr_drbg_context mDrbgContext;
-static BOOLEAN                  mInitFlag = FALSE;
+mbedtls_ctr_drbg_context gDrbgContext;
+static BOOLEAN           mInitFlag = FALSE;
 
 
 
@@ -77,9 +77,9 @@ RandomSeed (
 {
   int ret = -1;
   if (mInitFlag == FALSE) {
-    mbedtls_ctr_drbg_init(&mDrbgContext);
+    mbedtls_ctr_drbg_init(&gDrbgContext);
     if (Seed == NULL) {
-      ret = mbedtls_ctr_drbg_seed(&mDrbgContext, OsTestEntropyFnc, NULL, NULL, 0);
+      ret = mbedtls_ctr_drbg_seed(&gDrbgContext, OsTestEntropyFnc, NULL, NULL, 0);
     } else {
       // TBD
     }
@@ -112,7 +112,7 @@ RandomBytes (
   )
 {
   int ret = -1;
-  ret = mbedtls_ctr_drbg_random(&mDrbgContext, Output, Size);
+  ret = mbedtls_ctr_drbg_random(&gDrbgContext, Output, Size);
   return ret == 0;
 }
 
