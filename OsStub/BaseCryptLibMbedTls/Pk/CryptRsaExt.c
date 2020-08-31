@@ -250,6 +250,11 @@ RsaPkcs1Sign (
   INT32             Ret;
   mbedtls_md_type_t md_alg;
 
+
+  if (RsaContext == NULL || MessageHash == NULL) {
+    return FALSE;
+  }
+
   switch (HashSize) {
   case SHA256_DIGEST_SIZE:
     md_alg = MBEDTLS_MD_SHA256;
@@ -287,6 +292,7 @@ RsaPkcs1Sign (
   if (Ret != 0) {
     return FALSE;
   }
+  *SigSize = mbedtls_rsa_get_len (RsaContext);
   return TRUE;
 }
 
@@ -326,5 +332,54 @@ RsaPssSign (
   IN OUT  UINTN        *SigSize
   )
 {
-  return FALSE;
+  INT32             Ret;
+  mbedtls_md_type_t md_alg;
+
+
+  if (RsaContext == NULL || MessageHash == NULL) {
+    return FALSE;
+  }
+
+  switch (HashSize) {
+  case SHA256_DIGEST_SIZE:
+    md_alg = MBEDTLS_MD_SHA256;
+    break;
+
+  case SHA384_DIGEST_SIZE:
+    md_alg = MBEDTLS_MD_SHA384;
+    break;
+
+  case SHA512_DIGEST_SIZE:
+    md_alg = MBEDTLS_MD_SHA512;
+    break;
+
+  default:
+    return FALSE;
+  }
+
+  if (Signature == NULL) {
+    //
+    // If Signature is NULL, return safe SignatureSize
+    //
+    *SigSize = MBEDTLS_MPI_MAX_SIZE;
+    return FALSE;
+  }
+
+  mbedtls_rsa_set_padding (RsaContext, MBEDTLS_RSA_PKCS_V21, md_alg);
+
+  Ret = mbedtls_rsa_rsassa_pss_sign (
+          RsaContext,
+          myrand,
+          NULL,
+          MBEDTLS_RSA_PRIVATE,
+          md_alg,
+          (UINT32)HashSize,
+          MessageHash,
+          Signature
+          );
+  if (Ret != 0) {
+    return FALSE;
+  }
+  *SigSize = ((mbedtls_rsa_context*)RsaContext)->len;
+  return TRUE;
 }

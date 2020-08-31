@@ -281,5 +281,52 @@ RsaPssVerify (
   IN  UINTN        SigSize
   )
 {
-  return FALSE;
+  INT32             Ret;
+  mbedtls_md_type_t md_alg;
+
+  if (RsaContext == NULL || MessageHash == NULL || Signature == NULL) {
+    return FALSE;
+  }
+
+  if (SigSize > INT_MAX || SigSize == 0) {
+    return FALSE;
+  }
+
+  switch (HashSize) {
+  case SHA256_DIGEST_SIZE:
+    md_alg = MBEDTLS_MD_SHA256;
+    break;
+
+  case SHA384_DIGEST_SIZE:
+    md_alg = MBEDTLS_MD_SHA384;
+    break;
+
+  case SHA512_DIGEST_SIZE:
+    md_alg = MBEDTLS_MD_SHA512;
+    break;
+
+  default:
+    return FALSE;
+  }
+
+  if (mbedtls_rsa_get_len (RsaContext) != SigSize) {
+    return FALSE;
+  }
+
+  mbedtls_rsa_set_padding (RsaContext, MBEDTLS_RSA_PKCS_V21, md_alg);
+
+  Ret = mbedtls_rsa_rsassa_pss_verify (
+          RsaContext,
+          NULL,
+          NULL,
+          MBEDTLS_RSA_PUBLIC,
+          md_alg,
+          (UINT32)HashSize,
+          MessageHash,
+          Signature
+          );
+  if (Ret != 0) {
+    return FALSE;
+  }
+  return TRUE;
 }
