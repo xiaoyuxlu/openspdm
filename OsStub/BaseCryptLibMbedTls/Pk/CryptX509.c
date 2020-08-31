@@ -33,7 +33,24 @@ X509ConstructCertificate (
   OUT  UINT8        **SingleX509Cert
   )
 {
-  return FALSE;
+  mbedtls_x509_crt  *MbedTlsCert;
+  INT32            Ret;
+
+  if (Cert == NULL || SingleX509Cert == NULL || CertSize == 0) {
+    return FALSE;
+  }
+
+  MbedTlsCert = AllocatePool (sizeof(mbedtls_x509_crt));
+  if (MbedTlsCert == NULL) {
+    return FALSE;
+  }
+
+  mbedtls_x509_crt_init(MbedTlsCert);
+
+  *SingleX509Cert = (UINT8 *)(VOID *)MbedTlsCert;
+  Ret = mbedtls_x509_crt_parse_der(MbedTlsCert, Cert, CertSize);
+
+  return Ret == 0;
 }
 
 /**
@@ -92,6 +109,11 @@ X509StackFree (
   IN  VOID  *X509Stack
   )
 {
+  if (X509Stack == NULL) {
+    return ;
+  }
+
+  mbedtls_x509_crt_free(X509Stack);
 }
 
 /**
@@ -120,7 +142,26 @@ X509GetSubjectName (
   IN OUT  UINTN        *SubjectSize
   )
 {
-  return FALSE;
+  mbedtls_x509_crt Crt;
+  INT32 Ret;
+  if (Cert == NULL) {
+    return FALSE;
+  }
+
+
+  mbedtls_x509_crt_init(&Crt);
+
+  Ret = mbedtls_x509_crt_parse_der(&Crt, Cert, CertSize);
+
+  if (Ret == 0) {
+    if (CertSubject != NULL) {
+      CopyMem(CertSubject, Crt.subject_raw.p, Crt.subject_raw.len);
+    }
+    *SubjectSize = Crt.subject_raw.len;
+  }
+  mbedtls_x509_crt_free(&Crt);
+
+  return Ret == 0;
 }
 
 /**
@@ -158,7 +199,26 @@ X509GetCommonName (
   IN OUT  UINTN        *CommonNameSize
   )
 {
-  return RETURN_UNSUPPORTED;
+  mbedtls_x509_crt Crt;
+  INT32 Ret;
+  if (Cert == NULL) {
+    return FALSE;
+  }
+
+
+  mbedtls_x509_crt_init(&Crt);
+
+  Ret = mbedtls_x509_crt_parse_der(&Crt, Cert, CertSize);
+
+  if (Ret == 0) {
+    if (CommonName != NULL) {
+      CopyMem(CommonName, Crt.subject_raw.p, Crt.subject_raw.len);
+    }
+    *CommonNameSize = Crt.subject_raw.len;
+  }
+  mbedtls_x509_crt_free(&Crt);
+
+  return Ret == 0;
 }
 
 /**
@@ -339,7 +399,34 @@ X509VerifyCert (
   IN  UINTN        CACertSize
   )
 {
-  return FALSE;
+  INT32 Ret;
+  mbedtls_x509_crt Ca, End;
+  UINT32  VFlag = 0;
+  mbedtls_x509_crt_profile Profile = {0};
+
+  if (Cert == NULL || CACert == NULL) {
+    return FALSE;
+  }
+
+  CopyMem(&Profile, &mbedtls_x509_crt_profile_default, sizeof(mbedtls_x509_crt_profile));
+
+  mbedtls_x509_crt_init(&Ca);
+  mbedtls_x509_crt_init(&End);
+
+  Ret = mbedtls_x509_crt_parse_der(&Ca, CACert, CACertSize);
+
+  if (Ret == 0) {
+    Ret = mbedtls_x509_crt_parse_der(&End, Cert, CertSize);
+  }
+
+  if (Ret == 0) {
+    Ret = mbedtls_x509_crt_verify_with_profile(&End, &Ca, NULL, &Profile, NULL, &VFlag, NULL, NULL);
+  }
+
+  mbedtls_x509_crt_free(&Ca);
+  mbedtls_x509_crt_free(&End);
+
+  return Ret == 0;
 }
 
 /**
