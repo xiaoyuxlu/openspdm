@@ -1876,6 +1876,35 @@ X509VerifyCertChain (
   );
 
 /**
+  Get one X509 certificate from CertChain.
+
+  @param[in]      CertChain         One or more ASN.1 DER-encoded X.509 certificates
+                                    where the first certificate is signed by the Root
+                                    Certificate or is the Root Cerificate itself. and
+                                    subsequent cerificate is signed by the preceding
+                                    cerificate.
+  @param[in]      CertChainLength   Total length of the certificate chain, in bytes.
+
+  @param[in]      CertIndex         Index of certificate. If index is -1 indecate the
+                                    last certificate in CertChain.
+
+  @param[out]     Cert              The certificate at the index of CertChain.
+  @param[out]     CertLength        The length certificate at the index of CertChain.
+
+  @retval  TRUE   Success.
+  @retval  FALSE  Failed to get certificate from certificate chain.
+**/
+BOOLEAN
+EFIAPI
+X509GetCertFromCertChain (
+  IN UINT8  *CertChain,
+  IN UINTN  CertChainLength,
+  IN INT32  CertIndex,
+  OUT UINT8 **Cert,
+  OUT UINTN *CertLength);
+
+
+/**
   Construct a X509 object from DER-encoded certificate data.
 
   If Cert is NULL, then return FALSE.

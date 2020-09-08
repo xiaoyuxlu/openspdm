@@ -566,6 +566,92 @@ X509VerifyCertChain (
   return VerifyFlag;
 }
 
+
+/**
+  Get one X509 certificate from CertChain.
+
+  @param[in]      CertChain         One or more ASN.1 DER-encoded X.509 certificates
+                                    where the first certificate is signed by the Root
+                                    Certificate or is the Root Cerificate itself. and
+                                    subsequent cerificate is signed by the preceding
+                                    cerificate.
+  @param[in]      CertChainLength   Total length of the certificate chain, in bytes.
+
+  @param[in]      CertIndex         Index of certificate.
+
+  @param[out]     Cert              The certificate at the index of CertChain.
+  @param[out]     CertLength        The length certificate at the index of CertChain.
+
+  @retval  TRUE   Success.
+  @retval  FALSE  Failed to get certificate from certificate chain.
+**/
+BOOLEAN
+EFIAPI
+X509GetCertFromCertChain (
+  IN UINT8  *CertChain,
+  IN UINTN  CertChainLength,
+  IN INT32  CertIndex,
+  OUT UINT8 **Cert,
+  OUT UINTN *CertLength)
+{
+
+  UINTN Asn1Len;
+  INT32 CurrentIndex;
+  UINTN CurrentCertLen;
+  UINT8 *CurrentCert;
+  UINT8 *TmpPtr;
+  INT32 Ret;
+
+  //
+  // Check input parameters.
+  //
+  if ((CertChain == NULL) || (Cert == NULL) ||
+      (CertIndex < -1) || (CertLength == NULL)) {
+    return FALSE;
+  }
+
+  CurrentCert = CertChain;
+  CurrentIndex = -1;
+
+  //Traverse the certificate chain
+  while (TRUE) {
+    //
+    // Get asn1 tag len
+    //
+    TmpPtr = CurrentCert;
+    Ret = mbedtls_asn1_get_tag (&TmpPtr, CertChain + CertChainLength, &Asn1Len, MBEDTLS_ASN1_CONSTRUCTED | MBEDTLS_ASN1_SEQUENCE);
+    if (Ret != 0) {
+      break;
+    }
+
+    CurrentCertLen = Asn1Len + (TmpPtr - CurrentCert);
+    CurrentIndex ++;
+
+    if (CurrentIndex == CertIndex) {
+      *Cert = CurrentCert;
+      *CertLength = CurrentCertLen;
+      return TRUE;
+    }
+
+    //
+    // Move to next
+    //
+    CurrentCert = CurrentCert + CurrentCertLen;
+  }
+
+  //
+  // If CertIndex is -1, Return the last certificate
+  //
+  if (CertIndex == -1 && CurrentIndex >= 0) {
+    *Cert = CurrentCert - CurrentCertLen;
+    *CertLength = CurrentCertLen;
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+
 /**
   Retrieve the TBSCertificate from one given X.509 certificate.
 
