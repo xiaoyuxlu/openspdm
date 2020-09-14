@@ -53,25 +53,25 @@ CryptestMain (
   //   return Status;
   // }
 
-  Status = ValidateCryptMac ();
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
+  // Status = ValidateCryptMac ();
+  // if (EFI_ERROR (Status)) {
+  //   return Status;
+  // }
 
   Status = ValidateCryptAeadCipher ();
   if (EFI_ERROR (Status)) {
     return Status;
   }
 
-  Status = ValidateCryptRsa ();
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
+  // Status = ValidateCryptRsa ();
+  // if (EFI_ERROR (Status)) {
+  //   return Status;
+  // }
 
-  Status = ValidateCryptRsa2 ();
-  if (EFI_ERROR (Status)) {
-    return Status;
-  }
+  // Status = ValidateCryptRsa2 ();
+  // if (EFI_ERROR (Status)) {
+  //   return Status;
+  // }
 
   Status = ValidateCryptX509 ();
   if (EFI_ERROR (Status)) {
